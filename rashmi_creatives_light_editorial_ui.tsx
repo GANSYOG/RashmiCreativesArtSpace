@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Menu, X, ArrowRight, ArrowUpRight,
+import { 
+  Menu, X, ArrowRight, ArrowUpRight, 
   MessageCircle, Phone, Instagram, Facebook, Linkedin,
   Layers, Printer, Sparkles, CheckCircle2, ChevronRight, Sliders, Sun
 } from 'lucide-react';
@@ -85,7 +85,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 font-sans selection:bg-orange-500 selection:text-white overflow-x-hidden relative">
-
+      
       {/* BACKGROUND WATERMARK */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none z-0 opacity-[0.035]">
         <span className="text-[22vw] font-black tracking-tighter uppercase text-zinc-900 whitespace-nowrap">
@@ -128,7 +128,7 @@ export default function App() {
       {/* NAVIGATION */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/80 backdrop-blur-2xl border-b border-zinc-200 py-4 shadow-sm' : 'bg-transparent py-8'}`}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
-
+          
           <div className="flex items-center gap-3 z-50 group cursor-pointer">
             <div className="w-10 h-10 bg-gradient-to-tr from-cyan-500 via-amber-500 to-pink-500 flex items-center justify-center font-black text-white text-xl group-hover:scale-105 transition-transform shadow-md shadow-pink-500/20 rounded-xl">R</div>
             <span className="font-bold text-2xl tracking-tighter uppercase text-zinc-900">RAS<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">_CREATIVES</span></span>
@@ -162,7 +162,7 @@ export default function App() {
 
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden z-10">
-        <div
+        <div 
           ref={heroRef}
           className={`w-full max-w-7xl mx-auto px-6 md:px-12 transition-all duration-1000 transform ${heroInView ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
         >
@@ -170,12 +170,12 @@ export default function App() {
             <div className="h-px w-12 bg-gradient-to-r from-cyan-600 to-pink-600"></div>
             <span className="uppercase tracking-[0.2em] rainbow-gradient text-sm font-bold">Idea to Reality • Agency & Production</span>
           </div>
-
+          
           <h1 className="text-6xl md:text-8xl lg:text-[10rem] font-black tracking-tighter leading-[0.9] text-zinc-900 mb-8">
             Designing<br/>
             <span className="rainbow-gradient">Printing Branding.</span>
           </h1>
-
+          
           <div className="flex flex-col md:flex-row gap-8 justify-between items-start md:items-end mt-16 md:mt-24 border-t border-zinc-200 pt-8">
             <p className="text-xl md:text-2xl text-zinc-600 max-w-xl font-light leading-relaxed">
               International creative agency power combined with direct industrial manufacturing. No middlemen. Absolute precision.
@@ -203,7 +203,7 @@ export default function App() {
       {/* INTERACTIVE SERVICES MATRIX */}
       <section id="services" className="py-32 relative z-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-
+          
           <div className="mb-16 flex flex-col md:flex-row justify-between items-end gap-8">
             <div>
               <span className="text-cyan-600 uppercase tracking-widest text-xs font-bold mb-3 block">Complete Capabilities</span>
@@ -212,7 +212,7 @@ export default function App() {
             <p className="text-zinc-600 max-w-md text-sm md:text-base">Click through our four core pillars to explore our exhaustive catalog of deliverables.</p>
           </div>
 
-          <div
+          <div 
             ref={interactiveRef}
             className={`glass-panel p-3 md:p-6 rounded-3xl transition-all duration-1000 ${interactiveInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
           >
@@ -262,7 +262,7 @@ export default function App() {
       {/* BEFORE / AFTER TRANSFORMATION SLIDER */}
       <section id="transformation" className="py-32 bg-white/60 backdrop-blur-md border-y border-zinc-200 relative z-10 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-
+          
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-pink-600 uppercase tracking-widest text-xs font-bold mb-3 block">Idea To Reality</span>
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-zinc-900 mb-4">The Transformation Standard</h2>
@@ -271,8 +271,8 @@ export default function App() {
 
           <div className="max-w-4xl mx-auto rounded-3xl overflow-hidden relative border border-zinc-200 shadow-2xl aspect-[16/10] select-none">
             {/* AFTER IMAGE */}
-            <img
-              src="https://images.unsplash.com/photo-1613521140785-e85e427f8002?auto=format&fit=crop&q=80&w=1200"
+            <img 
+              src="https://images.unsplash.com/photo-1613521140785-e85e427f8002?auto=format&fit=crop&q=80&w=1200" 
               alt="Finished Luxury Branding"
               className="absolute inset-0 w-full h-full object-cover filter saturate-125"
             />
@@ -281,12 +281,12 @@ export default function App() {
             </div>
 
             {/* BEFORE IMAGE */}
-            <div
-              className="absolute inset-0 overflow-hidden"
+            <div 
+              className="absolute inset-0 overflow-hidden" 
               style={{ width: `${sliderPosition}%` }}
             >
-              <img
-                src="https://images.unsplash.com/photo-1613521140785-e85e427f8002?auto=format&fit=crop&q=80&w=1200"
+              <img 
+                src="https://images.unsplash.com/photo-1613521140785-e85e427f8002?auto=format&fit=crop&q=80&w=1200" 
                 alt="Raw Concept Sketch"
                 className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-200 brightness-90 max-w-none"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -297,7 +297,7 @@ export default function App() {
             </div>
 
             {/* SLIDER HANDLE */}
-            <div
+            <div 
               className="absolute top-0 bottom-0 w-1 bg-zinc-900 cursor-ew-resize z-20 flex items-center justify-center shadow-lg"
               style={{ left: `${sliderPosition}%` }}
             >
@@ -306,10 +306,10 @@ export default function App() {
               </div>
             </div>
 
-            <input
-              type="range"
-              min="0"
-              max="100"
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
               value={sliderPosition}
               onChange={(e) => setSliderPosition(e.target.value)}
               className="absolute inset-0 opacity-0 cursor-ew-resize z-30 w-full h-full"
@@ -332,15 +332,15 @@ export default function App() {
             </a>
           </div>
 
-          <div
+          <div 
             ref={showcaseRef}
             className={`grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[420px] transition-all duration-1000 ${showcaseInView ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'}`}
           >
             {portfolio.map((work) => (
               <div key={work.id} className={`group relative overflow-hidden bg-zinc-200 rounded-3xl cursor-pointer ${work.span} shadow-md`}>
-                <img
-                  src={work.img}
-                  alt={work.title}
+                <img 
+                  src={work.img} 
+                  alt={work.title} 
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
@@ -393,7 +393,7 @@ export default function App() {
                 Designing, Printing, Branding & Digital Marketing. Idea to Reality.
               </p>
             </div>
-
+            
             <div>
               <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Navigation</h4>
               <ul className="space-y-4 text-zinc-400">
@@ -416,7 +416,7 @@ export default function App() {
               </div>
             </div>
           </div>
-
+          
           <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-zinc-800 text-zinc-500 text-sm">
             <p>© {new Date().getFullYear()} Rashmi (RAS) Creatives. All rights reserved.</p>
             <div className="flex gap-6 mt-4 md:mt-0">
