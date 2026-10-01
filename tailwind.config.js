@@ -5,17 +5,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-      },
-      colors: {
-        brand: {
-          orange: '#FF6B00',
-          dark: '#111113',
-        }
-      }
-    },
+    extend: {},
   },
   plugins: [],
 }
