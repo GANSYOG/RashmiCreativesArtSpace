@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Menu, X, ArrowRight,
+import { 
+  Menu, X, ArrowRight, 
   MessageCircle, Phone, MapPin,
   ChevronRight, ChevronLeft, Maximize2
 } from 'lucide-react';
@@ -13,21 +13,30 @@ const InstagramIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
-const useIntersectionObserver = (options = {}) => {
-  const [isIntersecting, setIsIntersecting] = useState(false);
+// Device-safe observer: defaults to true so content is ALWAYS visible on any device
+const useIntersectionObserver = () => {
+  const [isIntersecting, setIsIntersecting] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsIntersecting(true);
-        observer.unobserve(entry.target);
-      }
-    }, { threshold: 0.1, ...options });
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setIsIntersecting(true);
+      return;
+    }
+    try {
+      const observer = new IntersectionObserver(([entry]) => {
+        if (entry && entry.isIntersecting) {
+          setIsIntersecting(true);
+          observer.unobserve(entry.target);
+        }
+      }, { threshold: 0.05 });
 
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [options]);
+      if (ref.current) observer.observe(ref.current);
+      return () => observer.disconnect();
+    } catch {
+      setIsIntersecting(true);
+    }
+  }, []);
 
   return [ref, isIntersecting] as const;
 };
@@ -84,8 +93,11 @@ export default function App() {
   const [galleryRef, galleryInView] = useIntersectionObserver();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      const scrollPos = window.scrollY || window.pageYOffset || 0;
+      setIsScrolled(scrollPos > 40);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -123,32 +135,31 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 font-sans selection:bg-orange-500 selection:text-white overflow-x-hidden relative">
-
+      
       {/* BACKGROUND WATERMARK */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none z-0 opacity-[0.04]">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none z-0 opacity-[0.035]">
         <span className="text-[14vw] font-black tracking-tighter uppercase bg-gradient-to-r from-orange-500 via-pink-500 to-cyan-500 bg-clip-text text-transparent whitespace-nowrap">
           RashmiCreativesArtSpace
         </span>
       </div>
 
-      {/* BOUNCING COLOR SPLASH ORBS */}
-      <div className="absolute top-10 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-cyan-300/40 via-blue-400/20 to-transparent rounded-full blur-[140px] pointer-events-none animate-[bounce_12s_infinite_ease-in-out]" />
-      <div className="absolute top-[35%] -right-[5%] w-[700px] h-[700px] bg-gradient-to-bl from-pink-300/40 via-purple-300/20 to-transparent rounded-full blur-[160px] pointer-events-none animate-[bounce_16s_infinite_ease-in-out_1s]" />
-      <div className="absolute top-[65%] -left-[5%] w-[650px] h-[650px] bg-gradient-to-tr from-amber-300/40 via-orange-300/20 to-transparent rounded-full blur-[150px] pointer-events-none animate-[bounce_14s_infinite_ease-in-out_2s]" />
-      <div className="absolute bottom-10 right-1/3 w-[600px] h-[600px] bg-gradient-to-t from-emerald-300/40 via-teal-300/20 to-transparent rounded-full blur-[150px] pointer-events-none animate-[bounce_18s_infinite_ease-in-out_1.5s]" />
+      {/* GPU-SAFE AMBIENT COLOR GLOWS (LIGHTWEIGHT, NO HEAVY MOBILE MEMORY LEAKS) */}
+      <div className="hidden sm:block absolute top-10 left-1/4 w-[350px] md:w-[500px] h-[350px] md:h-[500px] bg-cyan-300/25 rounded-full blur-3xl pointer-events-none" />
+      <div className="hidden sm:block absolute top-[35%] -right-[5%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-pink-300/25 rounded-full blur-3xl pointer-events-none" />
+      <div className="hidden sm:block absolute top-[65%] -left-[5%] w-[350px] md:w-[550px] h-[350px] md:h-[550px] bg-amber-300/25 rounded-full blur-3xl pointer-events-none" />
 
       {/* NAVIGATION */}
-      <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/85 backdrop-blur-2xl border-b border-zinc-200 py-4 shadow-sm' : 'bg-transparent py-8'}`}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
-
-          <div className="flex items-center gap-3 z-50 group cursor-pointer">
-            <img src="/assets/logo.jpg" alt="RashmiCreativesArtSpace Logo" className="w-12 h-12 object-contain rounded-full shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform" />
-            <span className="font-black text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-cyan-500">
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md border-b border-zinc-200 py-3.5 shadow-sm' : 'bg-transparent py-5 sm:py-7'}`}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 flex justify-between items-center">
+          
+          <a href="#" className="flex items-center gap-3 z-50 group cursor-pointer">
+            <img src="/assets/logo.jpg" alt="RashmiCreativesArtSpace Logo" className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-full shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform" />
+            <span className="font-black text-xl sm:text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-cyan-500">
               RashmiCreatives<span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-purple-600">ArtSpace</span>
             </span>
-          </div>
+          </a>
 
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium tracking-wide">
+          <div className="hidden md:flex items-center gap-8 lg:gap-10 text-sm font-medium tracking-wide">
             <a href="#services" className="text-zinc-600 hover:text-cyan-600 transition-colors">Services</a>
             <a href="#gallery" className="text-zinc-900 font-semibold hover:text-orange-600 transition-colors flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
@@ -156,39 +167,43 @@ export default function App() {
             </a>
             <a href="#contact" className="text-zinc-600 hover:text-pink-600 transition-colors">Contact</a>
             <div className="h-4 w-px bg-zinc-300"></div>
-            <a href="tel:+919321590601" className="px-6 py-2.5 bg-zinc-900 text-white hover:bg-orange-600 transition-all font-semibold flex items-center gap-2 rounded-full shadow-md">
+            <a href="tel:+919321590601" className="px-5 py-2.5 bg-zinc-900 text-white hover:bg-orange-600 transition-all font-semibold flex items-center gap-2 rounded-full shadow-md text-xs sm:text-sm">
               <Phone className="w-4 h-4" /> Quick Call
             </a>
           </div>
 
-          <button className="md:hidden z-50 text-zinc-900" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+          <button 
+            className="md:hidden z-50 text-zinc-900 p-2 rounded-xl bg-white/90 border border-zinc-200" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        <div className={`fixed inset-0 bg-white z-40 flex flex-col justify-center items-center gap-8 transition-all duration-500 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-          <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-3xl font-bold tracking-tighter hover:text-cyan-600 transition-colors">Services Matrix</a>
-          <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="text-3xl font-bold tracking-tighter hover:text-orange-600 transition-colors text-orange-600">Work Done by Us</a>
-          <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-3xl font-bold tracking-tighter hover:text-pink-600 transition-colors">Contact Us</a>
-          <a href="tel:+919321590601" onClick={() => setMobileMenuOpen(false)} className="mt-6 px-8 py-4 bg-gradient-to-r from-cyan-600 to-pink-600 text-white font-bold text-lg rounded-full flex items-center gap-2 shadow-xl">
-            Call +91-93215 90601
+        {/* Mobile Menu Drawer */}
+        <div className={`fixed inset-0 bg-white z-40 flex flex-col justify-center items-center gap-8 px-6 transition-all duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+          <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-2xl sm:text-3xl font-bold tracking-tight hover:text-cyan-600 transition-colors">Services Matrix</a>
+          <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="text-2xl sm:text-3xl font-bold tracking-tight hover:text-orange-600 transition-colors text-orange-600">Work Done by Us</a>
+          <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-2xl sm:text-3xl font-bold tracking-tight hover:text-pink-600 transition-colors">Contact Us</a>
+          <a href="tel:+919321590601" onClick={() => setMobileMenuOpen(false)} className="mt-4 px-8 py-4 bg-gradient-to-r from-cyan-600 to-pink-600 text-white font-bold text-base rounded-full flex items-center gap-2 shadow-xl">
+            <Phone className="w-5 h-5" /> Call +91-93215 90601
           </a>
         </div>
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden z-10">
-        <div
+      <section className="relative min-h-[85vh] sm:min-h-screen flex items-center pt-24 sm:pt-28 pb-16 overflow-hidden z-10">
+        <div 
           ref={heroRef}
-          className={`w-full max-w-7xl mx-auto px-6 md:px-12 transition-all duration-1000 transform ${heroInView ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
+          className={`w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-12 transition-all duration-700 transform ${heroInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-100'}`}
         >
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-px w-12 bg-gradient-to-r from-cyan-600 to-pink-600"></div>
-            <span className="uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 via-amber-500 to-pink-600 text-sm font-bold">Idea to Reality • Agency & Production</span>
+          <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="h-px w-8 sm:w-12 bg-gradient-to-r from-cyan-600 to-pink-600"></div>
+            <span className="uppercase tracking-[0.18em] bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 via-amber-500 to-pink-600 text-xs sm:text-sm font-bold">Idea to Reality • Agency & Production</span>
           </div>
-
-          <h1 className="text-6xl md:text-8xl lg:text-[10rem] font-black tracking-tighter leading-[0.9] mb-8">
+          
+          <h1 className="text-4xl sm:text-7xl md:text-8xl lg:text-[9.5rem] font-black tracking-tighter leading-[0.95] mb-6 sm:mb-8 break-words">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500">
               Designing
             </span><br/>
@@ -196,22 +211,22 @@ export default function App() {
               Printing Branding.
             </span>
           </h1>
-
-          <div className="flex flex-col md:flex-row gap-8 justify-between items-start md:items-end mt-16 md:mt-24 border-t border-zinc-200 pt-8">
-            <p className="text-xl md:text-2xl text-zinc-600 max-w-xl font-light leading-relaxed">
+          
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 justify-between items-start md:items-end mt-10 sm:mt-16 md:mt-20 border-t border-zinc-200 pt-6 sm:pt-8">
+            <p className="text-base sm:text-xl md:text-2xl text-zinc-600 max-w-xl font-light leading-relaxed">
               International creative agency aesthetics combined with direct industrial manufacturing. Turn any concept into tangible reality with zero compromise.
             </p>
-            <div className="flex flex-wrap gap-4 w-full md:w-auto">
-              <a href="#gallery" className="px-8 py-5 bg-zinc-900 hover:bg-zinc-800 text-white transition-all font-bold rounded-full shadow-xl flex items-center justify-center gap-3">
+            <div className="flex flex-wrap gap-3.5 sm:gap-4 w-full md:w-auto">
+              <a href="#gallery" className="px-6 sm:px-8 py-3.5 sm:py-4 bg-zinc-900 hover:bg-zinc-800 text-white transition-all font-bold rounded-full shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base">
                 View Work Done ({allGalleryPhotos.length} Photos)
               </a>
-              <a
-                href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace!%20I%20want%20to%20get%20an%20instant%20quote%20for%20a%20design%20and%20printing%20project."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-8 py-5 bg-gradient-to-r from-cyan-600 via-orange-500 to-pink-600 hover:opacity-95 text-white transition-opacity font-bold rounded-full shadow-xl flex items-center justify-center gap-3"
+              <a 
+                href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace!%20I%20want%20to%20get%20an%20instant%20quote%20for%20a%20design%20and%20printing%20project." 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-cyan-600 via-orange-500 to-pink-600 hover:opacity-95 text-white transition-opacity font-bold rounded-full shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base"
               >
-                <MessageCircle className="w-5 h-5" /> Instant WhatsApp Quote
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" /> Instant WhatsApp Quote
               </a>
             </div>
           </div>
@@ -219,44 +234,46 @@ export default function App() {
       </section>
 
       {/* MULTI-COLOR MARQUEE */}
-      <div className="py-10 bg-gradient-to-r from-cyan-600 via-amber-500 to-pink-600 text-white overflow-hidden flex whitespace-nowrap rotate-[-2deg] scale-110 relative z-20 shadow-xl">
-        <div className="flex gap-12 items-center text-4xl md:text-6xl font-black tracking-tighter uppercase" style={{ animation: 'marquee 18s linear infinite' }}>
-          <span>Logo Design</span> <span className="text-white/60">•</span>
-          <span>Vinyl & Flex Printing</span> <span className="text-white/60">•</span>
-          <span>ACP & Acrylic Boards</span> <span className="text-white/60">•</span>
-          <span>Corporate Branding</span> <span className="text-white/60">•</span>
-          <span>Digital Ads & SEO</span> <span className="text-white/60">•</span>
-          <span>Office Graphics</span> <span className="text-white/60">•</span>
-          <span>Custom Packaging</span> <span className="text-white/60">•</span>
+      <div className="w-full overflow-hidden my-2">
+        <div className="py-6 sm:py-9 bg-gradient-to-r from-cyan-600 via-amber-500 to-pink-600 text-white overflow-hidden flex whitespace-nowrap rotate-[-1.5deg] scale-105 relative z-20 shadow-xl">
+          <div className="flex gap-8 sm:gap-12 items-center text-2xl sm:text-4xl md:text-6xl font-black tracking-tight uppercase" style={{ animation: 'marquee 18s linear infinite' }}>
+            <span>Logo Design</span> <span className="text-white/60">•</span>
+            <span>Vinyl & Flex Printing</span> <span className="text-white/60">•</span>
+            <span>ACP & Acrylic Boards</span> <span className="text-white/60">•</span>
+            <span>Corporate Branding</span> <span className="text-white/60">•</span>
+            <span>Digital Ads & SEO</span> <span className="text-white/60">•</span>
+            <span>Office Graphics</span> <span className="text-white/60">•</span>
+            <span>Custom Packaging</span> <span className="text-white/60">•</span>
+          </div>
         </div>
       </div>
 
       {/* INTERACTIVE SERVICES MATRIX */}
-      <section id="services" className="py-32 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-
-          <div className="mb-16 flex flex-col md:flex-row justify-between items-end gap-8">
+      <section id="services" className="py-20 sm:py-28 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12">
+          
+          <div className="mb-12 sm:mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 sm:gap-8">
             <div>
-              <span className="text-cyan-600 uppercase tracking-widest text-xs font-bold mb-3 block">Complete Capabilities</span>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-zinc-900">Interactive Service Matrix</h2>
+              <span className="text-cyan-600 uppercase tracking-widest text-xs font-bold mb-2 sm:mb-3 block">Complete Capabilities</span>
+              <h2 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight text-zinc-900">Interactive Service Matrix</h2>
             </div>
             <p className="text-zinc-600 max-w-md text-sm md:text-base">Explore our core service deliverables for brand creation, printing, and outdoor execution. Click any service to inquire directly.</p>
           </div>
 
-          <div
+          <div 
             ref={interactiveRef}
-            className={`bg-white/75 backdrop-blur-xl border border-black/5 shadow-2xl p-3 md:p-6 rounded-3xl transition-all duration-1000 ${interactiveInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+            className={`bg-white/85 backdrop-blur-xl border border-black/5 shadow-xl sm:shadow-2xl p-3 sm:p-6 rounded-3xl transition-all duration-700 ${interactiveInView ? 'opacity-100 translate-y-0' : 'opacity-100 translate-y-4'}`}
           >
             {/* Tabs Header */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mb-6 sm:mb-8">
               {serviceTabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-5 px-6 rounded-2xl text-left transition-all relative overflow-hidden ${activeTab === tab.id ? 'bg-zinc-900 text-white shadow-xl' : 'text-zinc-600 hover:text-zinc-900 hover:bg-black/5'}`}
+                  className={`py-3.5 sm:py-5 px-4 sm:px-6 rounded-2xl text-left transition-all relative overflow-hidden ${activeTab === tab.id ? 'bg-zinc-900 text-white shadow-lg' : 'text-zinc-600 hover:text-zinc-900 hover:bg-black/5 bg-zinc-50'}`}
                 >
-                  <div className="text-xs uppercase tracking-wider font-mono opacity-60 mb-1">{tab.tagline}</div>
-                  <div className="text-xl font-bold">{tab.title}</div>
+                  <div className="text-[10px] sm:text-xs uppercase tracking-wider font-mono opacity-60 mb-1">{tab.tagline}</div>
+                  <div className="text-base sm:text-xl font-bold">{tab.title}</div>
                   {activeTab === tab.id && (
                     <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${tab.color}`} />
                   )}
@@ -265,33 +282,33 @@ export default function App() {
             </div>
 
             {/* Active Tab Detailed List Display */}
-            <div className="p-6 md:p-12 bg-white rounded-2xl border border-zinc-200 shadow-sm">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pb-8 border-b border-zinc-100 gap-4">
+            <div className="p-4 sm:p-8 md:p-12 bg-white rounded-2xl border border-zinc-200 shadow-sm">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b border-zinc-100 gap-4">
                 <div>
-                  <h3 className={`text-3xl md:text-4xl font-black mb-2 ${currentTabObj.accent}`}>{currentTabObj.title} Division</h3>
-                  <p className="text-zinc-600">High-grade execution tailored for maximum brand impact.</p>
+                  <h3 className={`text-2xl sm:text-3xl md:text-4xl font-black mb-1.5 ${currentTabObj.accent}`}>{currentTabObj.title} Division</h3>
+                  <p className="text-zinc-600 text-sm sm:text-base">High-grade execution tailored for maximum brand impact.</p>
                 </div>
-                <a
-                  href={`https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace!%20I%20am%20looking%20for%20*${encodeURIComponent(currentTabObj.title)}*%20services.%20Please%20share%20your%20pricing%20and%20catalog.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 bg-zinc-100 hover:bg-orange-50 hover:border-orange-300 border border-zinc-200 text-zinc-900 hover:text-orange-600 text-sm font-semibold flex items-center gap-2 rounded-full transition-all"
+                <a 
+                  href={`https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace!%20I%20am%20looking%20for%20*${encodeURIComponent(currentTabObj.title)}*%20services.%20Please%20share%20your%20pricing%20and%20catalog.`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="px-5 sm:px-6 py-2.5 sm:py-3 bg-zinc-100 hover:bg-orange-50 hover:border-orange-300 border border-zinc-200 text-zinc-900 hover:text-orange-600 text-xs sm:text-sm font-semibold flex items-center gap-2 rounded-full transition-all shrink-0"
                 >
                   Inquire for {currentTabObj.title} <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {currentTabObj.items.map((item, idx) => (
-                  <a
-                    key={idx}
+                  <a 
+                    key={idx} 
                     href={`https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace!%20I%20want%20to%20inquire%20about%20*${encodeURIComponent(item)}*%20(${encodeURIComponent(currentTabObj.title)}).%20Please%20share%20details%20and%20pricing.`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/60 flex items-center justify-between group hover:border-orange-500/50 hover:bg-white hover:shadow-md transition-all cursor-pointer"
+                    className="p-3.5 sm:p-4 rounded-xl bg-zinc-50 border border-zinc-200/60 flex items-center justify-between group hover:border-orange-500/50 hover:bg-white hover:shadow-md transition-all cursor-pointer"
                   >
-                    <span className="font-semibold text-zinc-800 group-hover:text-orange-600 transition-colors">{item}</span>
-                    <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all" />
+                    <span className="font-semibold text-sm sm:text-base text-zinc-800 group-hover:text-orange-600 transition-colors">{item}</span>
+                    <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all shrink-0" />
                   </a>
                 ))}
               </div>
@@ -304,51 +321,51 @@ export default function App() {
       {/* ======================================================== */}
       {/* WORK DONE BY US / GALLERY - ALL IMAGES IN ONE CLEAN GRID */}
       {/* ======================================================== */}
-      <section id="gallery" className="py-28 bg-white/70 backdrop-blur-md border-y border-zinc-200 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12" ref={galleryRef}>
-
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-14 gap-6">
+      <section id="gallery" className="py-20 sm:py-28 bg-white/70 backdrop-blur-md border-y border-zinc-200 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12" ref={galleryRef}>
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 sm:mb-14 gap-6">
             <div>
-              <span className="px-3.5 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase tracking-wider border border-orange-200 inline-block mb-3">
+              <span className="px-3.5 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase tracking-wider border border-orange-200 inline-block mb-2 sm:mb-3">
                 Real Executions
               </span>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-zinc-900">
+              <h2 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight text-zinc-900">
                 Work Done by Us
               </h2>
-              <p className="text-zinc-600 text-lg mt-2 max-w-xl">
+              <p className="text-zinc-600 text-base sm:text-lg mt-2 max-w-xl">
                 Browse our real projects and production work. Click any photo to preview in high resolution.
               </p>
             </div>
 
-            <a
-              href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20saw%20your%20work%20in%20the%20Work%20Done%20gallery%20and%20I%20would%20like%20to%20inquire%20about%20getting%20similar%20work%20done."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3.5 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-bold text-sm shadow-md transition-all flex items-center gap-2 shrink-0"
+            <a 
+              href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20saw%20your%20work%20in%20the%20Work%20Done%20gallery%20and%20I%20would%20like%20to%20inquire%20about%20getting%20similar%20work%20done." 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 shrink-0"
             >
               <MessageCircle className="w-4 h-4" /> WhatsApp Quick Inquiry
             </a>
           </div>
 
           {/* ALL PHOTOS IN ONE CLEAN MASONRY/GRID - NO TEXT CLUTTER */}
-          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 md:gap-4.5 transition-all duration-700 ${galleryInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 transition-all duration-700 ${galleryInView ? 'opacity-100 translate-y-0' : 'opacity-100'}`}>
             {allGalleryPhotos.map((photo, idx) => (
-              <div
+              <div 
                 key={photo.id}
                 onClick={() => openLightbox(idx)}
                 className="group relative aspect-square bg-zinc-100 rounded-2xl overflow-hidden border border-zinc-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
               >
-                <img
-                  src={photo.src}
+                <img 
+                  src={photo.src} 
                   alt={`Work Done ${photo.id}`}
                   loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500" 
                 />
-
+                
                 {/* Subtle Hover Overlay with Expand Icon */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="w-11 h-11 rounded-full bg-white/95 text-zinc-900 flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-200">
-                    <Maximize2 className="w-5 h-5 text-orange-600" />
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 text-zinc-900 flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-200">
+                    <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                   </div>
                 </div>
               </div>
@@ -360,14 +377,15 @@ export default function App() {
 
       {/* FULLSCREEN LIGHTBOX MODAL */}
       {activeLightboxIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 select-none animate-fadeIn"
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 md:p-8 select-none animate-fadeIn"
           onClick={closeLightbox}
         >
           {/* Close button */}
-          <button
+          <button 
             onClick={closeLightbox}
-            className="absolute top-6 right-6 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"
+            className="absolute top-4 sm:top-6 right-4 sm:right-6 w-11 h-11 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"
+            aria-label="Close Preview"
           >
             <X className="w-6 h-6" />
           </button>
@@ -378,7 +396,8 @@ export default function App() {
               e.stopPropagation();
               prevLightbox();
             }}
-            className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"
+            className="absolute left-2 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"
+            aria-label="Previous image"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -389,34 +408,35 @@ export default function App() {
               e.stopPropagation();
               nextLightbox();
             }}
-            className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"
+            className="absolute right-2 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"
+            aria-label="Next image"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
 
           {/* Modal Content */}
-          <div
-            className="max-w-4xl max-h-[90vh] flex flex-col items-center justify-center"
+          <div 
+            className="max-w-4xl max-h-[90vh] flex flex-col items-center justify-center w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-zinc-900 border border-white/10 max-h-[75vh]">
-              <img
-                src={allGalleryPhotos[activeLightboxIndex].src}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-zinc-900 border border-white/10 max-h-[70vh] sm:max-h-[75vh]">
+              <img 
+                src={allGalleryPhotos[activeLightboxIndex].src} 
                 alt={`Work Done ${allGalleryPhotos[activeLightboxIndex].id}`}
-                className="max-h-[75vh] w-auto max-w-full object-contain mx-auto"
+                className="max-h-[70vh] sm:max-h-[75vh] w-auto max-w-full object-contain mx-auto"
               />
             </div>
 
-            <div className="mt-4 w-full flex justify-between items-center text-white px-2">
-              <span className="text-zinc-400 text-sm">
+            <div className="mt-4 w-full flex flex-col sm:flex-row justify-between items-center text-white px-2 gap-3">
+              <span className="text-zinc-400 text-xs sm:text-sm">
                 Photo {activeLightboxIndex + 1} of {allGalleryPhotos.length}
               </span>
 
-              <a
+              <a 
                 href={`https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20am%20interested%20in%20the%20work%20shown%20in%20photo%20%23${activeLightboxIndex + 1}%20from%20your%20Work%20Done%20gallery.%20Please%20share%20rates%20and%20details.`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 hover:opacity-95 text-white font-bold text-sm rounded-full flex items-center gap-2 shadow-lg"
+                className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 hover:opacity-95 text-white font-bold text-xs sm:text-sm rounded-full flex items-center gap-2 shadow-lg"
               >
                 <MessageCircle className="w-4 h-4" /> Inquire for This Work on WhatsApp
               </a>
@@ -426,25 +446,25 @@ export default function App() {
       )}
 
       {/* MASSIVE CTA / CONTACT */}
-      <section id="contact" className="py-28 md:py-36 relative z-10 overflow-hidden bg-white/80 backdrop-blur-md border-t border-zinc-200">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-orange-600 uppercase tracking-widest text-xs font-bold mb-3 block">Get In Touch</span>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-zinc-900 mb-6 leading-none bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-cyan-500">
+      <section id="contact" className="py-20 sm:py-28 md:py-36 relative z-10 overflow-hidden bg-white/80 backdrop-blur-md border-t border-zinc-200">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="text-orange-600 uppercase tracking-widest text-xs font-bold mb-2 sm:mb-3 block">Get In Touch</span>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-zinc-900 mb-4 sm:mb-6 leading-none bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-cyan-500">
               LET'S TALK.
             </h2>
-            <p className="text-zinc-600 text-lg">
+            <p className="text-zinc-600 text-base sm:text-lg">
               Have a custom design, signage, or industrial printing project in mind? Reach out or visit our Malad East facility.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-              <a href="tel:+919321590601" className="px-8 py-4 bg-zinc-900 text-white font-bold rounded-full hover:bg-orange-600 transition-all flex items-center justify-center gap-3 shadow-lg">
-                <Phone className="w-5 h-5 text-orange-400" /> Call +91-93215 90601
+            <div className="flex flex-col sm:flex-row justify-center gap-3.5 sm:gap-4 mt-6 sm:mt-8">
+              <a href="tel:+919321590601" className="px-7 py-3.5 bg-zinc-900 text-white font-bold rounded-full hover:bg-orange-600 transition-all flex items-center justify-center gap-2.5 shadow-lg text-sm sm:text-base">
+                <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" /> Call +91-93215 90601
               </a>
-              <a href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20would%20like%20to%20inquire%20about%20your%20services%20and%20discuss%20a%20new%20project." target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] text-white font-bold rounded-full hover:bg-[#20ba59] transition-all flex items-center justify-center gap-3 shadow-lg">
-                <MessageCircle className="w-5 h-5" /> Chat on WhatsApp
+              <a href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20would%20like%20to%20inquire%20about%20your%20services%20and%20discuss%20a%20new%20project." target="_blank" rel="noopener noreferrer" className="px-7 py-3.5 bg-[#25D366] text-white font-bold rounded-full hover:bg-[#20ba59] transition-all flex items-center justify-center gap-2.5 shadow-lg text-sm sm:text-base">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" /> Chat on WhatsApp
               </a>
-              <a href="https://www.instagram.com/rashmi_creatives/" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white font-bold rounded-full hover:opacity-95 transition-all flex items-center justify-center gap-3 shadow-lg">
-                <InstagramIcon className="w-5 h-5" /> @rashmi_creatives
+              <a href="https://www.instagram.com/rashmi_creatives/" target="_blank" rel="noopener noreferrer" className="px-7 py-3.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white font-bold rounded-full hover:opacity-95 transition-all flex items-center justify-center gap-2.5 shadow-lg text-sm sm:text-base">
+                <InstagramIcon className="w-4 h-4 sm:w-5 sm:h-5" /> @rashmi_creatives
               </a>
             </div>
           </div>
@@ -452,7 +472,7 @@ export default function App() {
           {/* Contact Details Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* Address Card */}
-            <div className="p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-sm flex flex-col justify-between hover:border-orange-300 hover:bg-white transition-all">
+            <div className="p-6 sm:p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-sm flex flex-col justify-between hover:border-orange-300 hover:bg-white transition-all">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mb-5">
                   <MapPin className="w-6 h-6" />
@@ -462,9 +482,9 @@ export default function App() {
                   Office No.8, Ground Floor , Jai ShivShakti Apt., Triveni Nagar, Beside Central Bank of India, Malad East, Mumbai 400097.
                 </p>
               </div>
-              <a
-                href="https://maps.google.com/?q=Office+No.8+Ground+Floor+Jai+ShivShakti+Apt+Triveni+Nagar+Beside+Central+Bank+of+India+Malad+East+Mumbai+400097"
-                target="_blank"
+              <a 
+                href="https://maps.google.com/?q=Office+No.8+Ground+Floor+Jai+ShivShakti+Apt+Triveni+Nagar+Beside+Central+Bank+of+India+Malad+East+Mumbai+400097" 
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="mt-6 text-sm font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1.5"
               >
@@ -473,7 +493,7 @@ export default function App() {
             </div>
 
             {/* Direct Connect Card */}
-            <div className="p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-sm flex flex-col justify-between hover:border-cyan-300 hover:bg-white transition-all">
+            <div className="p-6 sm:p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-sm flex flex-col justify-between hover:border-cyan-300 hover:bg-white transition-all">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center mb-5">
                   <Phone className="w-6 h-6" />
@@ -484,9 +504,9 @@ export default function App() {
                 </p>
                 <p className="text-lg font-bold text-zinc-900 mt-3">+91 93215 90601</p>
               </div>
-              <a
-                href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20want%20to%20inquire%20about%20your%20printing%2C%20designing%2C%20and%20branding%20services%20and%20get%20a%20quotation."
-                target="_blank"
+              <a 
+                href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20want%20to%20inquire%20about%20your%20printing%2C%20designing%2C%20and%20branding%20services%20and%20get%20a%20quotation." 
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="mt-6 text-sm font-bold text-cyan-600 hover:text-cyan-700 flex items-center gap-1.5"
               >
@@ -495,7 +515,7 @@ export default function App() {
             </div>
 
             {/* Instagram Card */}
-            <div className="p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-sm flex flex-col justify-between hover:border-pink-300 hover:bg-white transition-all">
+            <div className="p-6 sm:p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-sm flex flex-col justify-between hover:border-pink-300 hover:bg-white transition-all">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center mb-5">
                   <InstagramIcon className="w-6 h-6" />
@@ -506,9 +526,9 @@ export default function App() {
                 </p>
                 <p className="text-lg font-bold text-pink-600 mt-3">@rashmi_creatives</p>
               </div>
-              <a
-                href="https://www.instagram.com/rashmi_creatives/"
-                target="_blank"
+              <a 
+                href="https://www.instagram.com/rashmi_creatives/" 
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="mt-6 text-sm font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1.5"
               >
@@ -520,40 +540,40 @@ export default function App() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-zinc-900 text-zinc-300 pt-24 pb-12 border-t border-zinc-800 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-20">
+      <footer className="bg-zinc-900 text-zinc-300 pt-16 sm:pt-24 pb-12 border-t border-zinc-800 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10 mb-16 sm:mb-20">
             <div className="md:col-span-5">
-              <div className="flex items-center gap-3 mb-6">
-                <img src="/assets/logo.jpg" alt="RashmiCreativesArtSpace Logo" className="w-12 h-12 rounded-full object-contain bg-white shadow-sm" />
-                <span className="font-black text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-pink-400 to-cyan-400">
+              <div className="flex items-center gap-3 mb-5 sm:mb-6">
+                <img src="/assets/logo.jpg" alt="RashmiCreativesArtSpace Logo" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-contain bg-white shadow-sm" />
+                <span className="font-black text-xl sm:text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-pink-400 to-cyan-400">
                   RashmiCreatives<span className="text-cyan-400">ArtSpace</span>
                 </span>
               </div>
-              <p className="text-zinc-400 max-w-md text-sm leading-relaxed mb-6">
+              <p className="text-zinc-400 max-w-md text-xs sm:text-sm leading-relaxed mb-6">
                 Complete Designing, Printing, Branding & Digital Marketing solutions. We turn your raw concepts into tangible, premium market realities.
               </p>
               <div className="flex items-center gap-3">
-                <a
-                  href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20have%20an%20inquiry%20regarding%20your%20services."
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <a 
+                  href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20have%20an%20inquiry%20regarding%20your%20services." 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
                   className="w-10 h-10 border border-zinc-700 rounded-full flex items-center justify-center text-zinc-300 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all"
                   title="WhatsApp"
                 >
                   <MessageCircle className="w-4 h-4" />
                 </a>
-                <a
-                  href="tel:+919321590601"
+                <a 
+                  href="tel:+919321590601" 
                   className="w-10 h-10 border border-zinc-700 rounded-full flex items-center justify-center text-zinc-300 hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all"
                   title="Phone Call"
                 >
                   <Phone className="w-4 h-4" />
                 </a>
-                <a
-                  href="https://www.instagram.com/rashmi_creatives/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <a 
+                  href="https://www.instagram.com/rashmi_creatives/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
                   className="w-10 h-10 border border-zinc-700 rounded-full flex items-center justify-center text-zinc-300 hover:bg-pink-600 hover:text-white hover:border-pink-600 transition-all"
                   title="Instagram @rashmi_creatives"
                 >
@@ -561,10 +581,10 @@ export default function App() {
                 </a>
               </div>
             </div>
-
+            
             <div className="md:col-span-3">
-              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-xs">Navigation</h4>
-              <ul className="space-y-3.5 text-zinc-400 text-sm">
+              <h4 className="text-white font-bold mb-4 sm:mb-6 tracking-widest uppercase text-xs">Navigation</h4>
+              <ul className="space-y-3 text-zinc-400 text-xs sm:text-sm">
                 <li><a href="#services" className="hover:text-cyan-400 transition-colors">Services Matrix</a></li>
                 <li><a href="#gallery" className="hover:text-orange-400 transition-colors">Work Done by Us</a></li>
                 <li><a href="#contact" className="hover:text-pink-400 transition-colors">Contact</a></li>
@@ -577,10 +597,10 @@ export default function App() {
             </div>
 
             <div className="md:col-span-4">
-              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-xs">Direct Contact & Address</h4>
-              <div className="space-y-4 text-zinc-400 text-sm">
+              <h4 className="text-white font-bold mb-4 sm:mb-6 tracking-widest uppercase text-xs">Direct Contact & Address</h4>
+              <div className="space-y-3.5 text-zinc-400 text-xs sm:text-sm">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-1" />
+                  <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
                   <p className="leading-relaxed">
                     Office No.8, Ground Floor , Jai ShivShakti Apt., Triveni Nagar, Beside Central Bank of India, Malad East, Mumbai 400097.
                   </p>
@@ -598,8 +618,8 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-zinc-800 text-zinc-500 text-sm">
+          
+          <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-zinc-800 text-zinc-500 text-xs sm:text-sm">
             <p>© {new Date().getFullYear()} RashmiCreativesArtSpace. All rights reserved.</p>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-white">Privacy Policy</a>
@@ -610,14 +630,15 @@ export default function App() {
       </footer>
 
       {/* FLOATING WHATSAPP BUTTON */}
-      <a
-        href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20would%20like%20to%20inquire%20about%20your%20design%20and%20printing%20services."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-8 right-8 w-16 h-16 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-[0_0_40px_rgba(37,211,102,0.3)] hover:scale-110 transition-transform z-50 group"
+      <a 
+        href="https://wa.me/919321590601?text=Hello%20RashmiCreativesArtSpace%2C%20I%20would%20like%20to%20inquire%20about%20your%20design%20and%20printing%20services." 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-[0_4px_25px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform z-50 group"
         title="Chat on WhatsApp"
+        aria-label="Chat on WhatsApp"
       >
-        <MessageCircle className="w-8 h-8" />
+        <MessageCircle className="w-7 h-7 sm:w-8 sm:h-8" />
       </a>
       <style>{`
         @keyframes marquee {
@@ -629,7 +650,7 @@ export default function App() {
           to { opacity: 1; }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.25s ease-out;
+          animation: fadeIn 0.2s ease-out;
         }
       `}</style>
     </div>
